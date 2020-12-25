@@ -1,0 +1,30 @@
+#include <LiquidCrystal.h>
+int gas;
+int wait = 100;
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+void setup() {
+lcd.begin(16, 2);
+pinMode(9,OUTPUT);
+pinMode(A0,INPUT);
+}
+void loop() {
+gas = analogRead(A0);
+  if(gas>680){
+digitalWrite(9,HIGH);
+lcd.setCursor(0,0);
+lcd.print("Gas level = ");//display on lcd
+lcd.print(gas);//display on lcd
+lcd.setCursor(0,1);
+lcd.print("ALERT GAS LEAKED");//display on lcd
+delay(wait);
+}
+  else {
+digitalWrite(9,LOW);
+lcd.setCursor(0,0);
+lcd.print("Gas level = ");//display on lcd
+lcd.print(gas);//display on lcd
+lcd.setCursor(0,1);
+lcd.print("ENVIROMENT SAFE");//display on lcd
+delay(wait);
+}
+}  
