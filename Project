@@ -1,30 +1,84 @@
 #include <LiquidCrystal.h>
-int gas;
-int wait = 100;
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-void setup() {
-lcd.begin(16, 2);
-pinMode(9,OUTPUT);
-pinMode(A0,INPUT);
+
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+//gas sensor
+int redLed = 10;
+int greenLed = 9;
+int gasSensor = A0;
+int buzzer = 13;
+int sensorThresh = 400;
+
+//ldr sensor
+const int blueLed = 8;
+const int ldrPin = A1;
+
+
+void setup()
+{
+  //gas sensor
+  pinMode(redLed, OUTPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(gasSensor, INPUT);
+  
+  //ldrsensor
+  pinMode(blueLed, OUTPUT);
+  pinMode(ldrPin, INPUT);
+
+  Serial.begin(9600);
+  lcd.begin(16,2);
 }
-void loop() {
-gas = analogRead(A0);
-  if(gas>680){
-digitalWrite(9,HIGH);
-lcd.setCursor(0,0);
-lcd.print("Gas level = ");//display on lcd
-lcd.print(gas);//display on lcd
-lcd.setCursor(0,1);
-lcd.print("ALERT GAS LEAKED");//display on lcd
-delay(wait);
+
+void loop()
+{
+  int analogValue = analogRead(gasSensor);
+  Serial.println(analogValue);
+  
+  int ldrStatus = analogRead(ldrPin);
+  
+  //ldr sensor
+  if (ldrStatus <= 300) 
+  {
+  	digitalWrite(blueLed, HIGH);
+  	Serial.print("Its DARK, Turn on the LED : ");
+    Serial.print(ldrStatus);
+  } 
+  else 
+  {
+  	digitalWrite(blueLed, LOW);
+    Serial.print("Its BRIGHT, Turn off the LED : ");
+    Serial.print(ldrStatus);
+  }
+  
+  //gas sensor
+  if(analogValue > sensorThresh)
+  {
+  	digitalWrite(redLed, HIGH);
+  	digitalWrite(greenLed, LOW);
+    tone(buzzer, 1000, 10000);
+	lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("EMERGENCY ALERT"); //DISPLAY ON LCD
+    delay(1000);
+    lcd.clear();
+    lcd.setCursor(0,1);
+    lcd.print("EVACUATE"); //DISPLAY ON LCD
+    delay(1000);
+  }
+  else
+  {
+  	digitalWrite(redLed, LOW);
+  	digitalWrite(greenLed, HIGH);
+    noTone(buzzer);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ENVIRONMENT SAFE"); //DISPLAY ON LCD
+    delay(1000);
+    lcd.clear();
+    lcd.setCursor(0,1);
+    lcd.print("ALL CLEAR"); //DISPLAY ON LCD
+    delay(1000);
+  }
 }
-  else {
-digitalWrite(9,LOW);
-lcd.setCursor(0,0);
-lcd.print("Gas level = ");//display on lcd
-lcd.print(gas);//display on lcd
-lcd.setCursor(0,1);
-lcd.print("ENVIROMENT SAFE");//display on lcd
-delay(wait);
-}
-}  
